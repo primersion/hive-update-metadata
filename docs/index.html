@@ -18,8 +18,11 @@
       function getAccount(account) {
         hive.api.getAccounts([account], function(err, result) {
           if (result && result.length > 0) {
-            json_metadata = result[0]['posting_json_metadata'];
+            json_metadata = result[0]['json_metadata'];
+            json_posting_metadata = result[0]['posting_json_metadata'];
             document.getElementById('jsonMetadata').value = json_metadata;
+            document.getElementById('jsonPostingMetadata').value = json_posting_metadata;
+            
             document.getElementById('newMetadataContainer').style.display = 'block';
           } else {
             alert("Could not load account - please check your input!");
@@ -30,9 +33,10 @@
       
       function updateJsonMetadata() {
         var new_metadata = document.getElementById('jsonMetadata').value;
+        var new_posting_metadata = document.getElementById('jsonPostingMetadata').value;
         var username = document.getElementById('username').value;
-        if (!new_metadata || !username) {
-          alert('Please enter a valid username and metadata!');
+        if (!new_metadata || !new_posting_metadata || !username) {
+          alert('Please enter a valid username, metadata and posting metadata!');
           return;
         }
         if (window.hive_keychain) {
@@ -41,12 +45,12 @@
             "account_update2",
             {
               "account":username,
-              "json_metadata":"",
-              "posting_json_metadata":new_metadata,
+              "json_metadata":new_metadata,
+              "posting_json_metadata":new_posting_metadata,
               "extensions":[]
             }
           ]);
-          window.hive_keychain.requestBroadcast(username, ops, "Posting", function(result) {
+          window.hive_keychain.requestBroadcast(username, ops, "Active", function(result) {
             if (result && result.success) {
               // successfully updated JSON metadata
             } else {
@@ -98,13 +102,18 @@
           
           <div id="newMetadataContainer" style="display:none">
             <hr>
-            <p>Update your account's JSON metadata as you like:</p>
+            <p>Update your account's metadata:</p>
             
             <div class="form-group mt-3">
-              <textarea class="form-control" id="jsonMetadata" rows="3" placeholder="New account JSON metadata..."></textarea>
+              <textarea class="form-control" id="jsonMetadata" rows="3"></textarea>
             </div>
             
-            <button class="btn btn-primary mt-2" onclick="updateJsonMetadata();">Update JSON Metadata</button>
+            <p>Update your account's POSTING metadata:</p>
+            <div class="form-group mt-3">
+              <textarea class="form-control" id="jsonPostingMetadata" rows="3"></textarea>
+            </div>
+            
+            <button class="btn btn-primary mt-2" onclick="updateJsonMetadata();">Update Metadata</button>
           </div>
       
       </div>
