@@ -1,0 +1,114 @@
+<html>
+  <head>
+  
+    <title>HIVE Update JSON Metadata</title>
+    
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@hiveio/hive-js/dist/hive.min.js"></script>
+  
+    <script>
+      function getAccount(account) {
+        hive.api.getAccounts([account], function(err, result) {
+          if (result && result.length > 0) {
+            json_metadata = result[0]['posting_json_metadata'];
+            document.getElementById('jsonMetadata').value = json_metadata;
+            document.getElementById('newMetadataContainer').style.display = 'block';
+          } else {
+            alert("Could not load account - please check your input!");
+          }
+	        
+        });
+      }
+      
+      function updateJsonMetadata() {
+        var new_metadata = document.getElementById('jsonMetadata').value;
+        var username = document.getElementById('username').value;
+        if (!new_metadata || !username) {
+          alert('Please enter a valid username and metadata!');
+          return;
+        }
+        if (window.hive_keychain) {
+          var ops = [];
+          ops.push([
+            "account_update2",
+            {
+              "account":username,
+              "json_metadata":"",
+              "posting_json_metadata":new_metadata,
+              "extensions":[]
+            }
+          ]);
+          window.hive_keychain.requestBroadcast(username, ops, "Posting", function(result) {
+            if (result && result.success) {
+              // successfully updated JSON metadata
+            } else {
+              if (result.error !== "user_cancel") {
+                alert(result.message);
+              }
+            }
+          });
+        } else {
+          alert("You need to install HIVE Keychain first!");
+        }
+      }
+      
+      function loadJsonMetadata() {
+         var username = document.getElementById("username").value;
+         if (!username) {
+           alert('Please enter a valid username!');
+           return;
+         }
+         getAccount(username);
+      }
+      
+    </script>
+  </head>
+  <body>
+    
+    <nav class="navbar navbar-light bg-light">
+      <div class="container justify-content-between">
+        <a class="navbar-brand">HIVE Update JSON Metadata</a>
+        <div>
+          <a href="https://github.com/primersion/hive-update-metadata" target="_blank">Check out on GitHub</a>
+        </div>
+      </div>
+    </nav>
+    <div class="container mt-4">
+      <div style="max-width: 650px">
+      
+        <div id="metadataContainer">
+          <p>Enter the username for which to update the JSON metadata:</p>
+          
+          <div class="input-group mb-3">
+            <div class="input-group-prepend">
+              <span class="input-group-text" id="basic-addon1">@</span>
+            </div>
+            <input type="text" class="form-control" placeholder="Username" aria-label="Username" aria-describedby="basic-addon1" id="username">
+          </div>
+          
+          <button class="btn btn-primary" type="button" onclick="loadJsonMetadata();" id="loadButton">Load JSON Metadata</button>
+          
+          <div id="newMetadataContainer" style="display:none">
+            <hr>
+            <p>Update your account's JSON metadata as you like:</p>
+            
+            <div class="form-group mt-3">
+              <textarea class="form-control" id="jsonMetadata" rows="3" placeholder="New account JSON metadata..."></textarea>
+            </div>
+            
+            <button class="btn btn-primary mt-2" onclick="updateJsonMetadata();">Update JSON Metadata</button>
+          </div>
+      
+      </div>
+    </div>
+  </body>
+</html>
+
